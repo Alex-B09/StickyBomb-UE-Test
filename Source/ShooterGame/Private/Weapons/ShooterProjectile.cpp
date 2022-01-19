@@ -55,6 +55,16 @@ void AShooterProjectile::PostInitializeComponents()
 	MyController = GetInstigatorController();
 }
 
+void AShooterProjectile::BeginPlay()
+{
+    Super::BeginPlay();
+    if (HasAuthority())
+    {
+        // set timer
+        GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AShooterProjectile::Explode2, 3.0f, false);
+    }
+}
+
 void AShooterProjectile::InitVelocity(FVector& ShootDirection)
 {
 	if (MovementComp)
@@ -148,4 +158,9 @@ void AShooterProjectile::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >
 	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
 	
 	DOREPLIFETIME( AShooterProjectile, bExploded );
+}
+
+void AShooterProjectile::Explode2()
+{
+    UE_LOG(LogTemp, Log, TEXT("EXPLOOOOOOOOOOOOSION"));
 }

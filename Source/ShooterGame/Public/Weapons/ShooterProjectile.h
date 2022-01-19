@@ -52,6 +52,11 @@ protected:
 	UPROPERTY(Transient, ReplicatedUsing=OnRep_Exploded)
 	bool bExploded;
 
+    UPROPERTY()
+    FTimerHandle ExplosionTimerHandle;
+
+    virtual void BeginPlay() override;
+
 	/** [client] explosion happened */
 	UFUNCTION()
 	void OnRep_Exploded();
@@ -64,6 +69,9 @@ protected:
 
 	/** update velocity on client */
 	virtual void PostNetReceiveVelocity(const FVector& NewVelocity) override;
+    
+    UFUNCTION()
+    void Explode2();
 
 protected:
 	/** Returns MovementComp subobject **/

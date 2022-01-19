@@ -31,6 +31,10 @@ struct FProjectileWeaponData
 	UPROPERTY(EditDefaultsOnly, Category=WeaponStat)
 	TSubclassOf<UDamageType> DamageType;
 
+    /** Time delay before explosions (in seconds)*/
+    UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+    float SecondsBeforeExplosing; // calculated from the moment launch by the weapon
+
 	/** defaults */
 	FProjectileWeaponData()
 	{
