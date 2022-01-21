@@ -61,7 +61,7 @@ void AShooterProjectile::BeginPlay()
     if (HasAuthority())
     {
         // set timer
-        GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AShooterProjectile::Explode2, 3.0f, false);
+        GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AShooterProjectile::Explode, 3.0f, false);
     }
 }
 
@@ -77,20 +77,26 @@ void AShooterProjectile::OnImpact(const FHitResult& HitResult)
 {
 	if (GetLocalRole() == ROLE_Authority && !bExploded)
 	{
-		Explode(HitResult);
+        mLastHit = HitResult;
+		//Explode(HitResult);
 		DisableAndDestroy();
 	}
 }
 
-void AShooterProjectile::Explode(const FHitResult& Impact)
+void AShooterProjectile::Explode()
 {
+    UE_LOG(LogTemp, Log, TEXT("EXPLOOOOOOOOOOOOSION"));
 	if (ParticleComp)
 	{
 		ParticleComp->Deactivate();
 	}
 
+    // get current position
+    auto location = GetActorLocation();
+    auto normal = GetActorForwardVector();
+
 	// effects and damage origin shouldn't be placed inside mesh at impact point
-	const FVector NudgedImpactLocation = Impact.ImpactPoint + Impact.ImpactNormal * 10.0f;
+	const FVector NudgedImpactLocation = location + normal * 10.0f;
 
 	if (WeaponConfig.ExplosionDamage > 0 && WeaponConfig.ExplosionRadius > 0 && WeaponConfig.DamageType)
 	{
@@ -99,11 +105,13 @@ void AShooterProjectile::Explode(const FHitResult& Impact)
 
 	if (ExplosionTemplate)
 	{
-		FTransform const SpawnTransform(Impact.ImpactNormal.Rotation(), NudgedImpactLocation);
+		FTransform const SpawnTransform(GetActorRotation(), NudgedImpactLocation);
 		AShooterExplosionEffect* const EffectActor = GetWorld()->SpawnActorDeferred<AShooterExplosionEffect>(ExplosionTemplate, SpawnTransform);
 		if (EffectActor)
 		{
-			EffectActor->SurfaceHit = Impact;
+            // use decal if the velocity is 0ish
+            EffectActor->ShouldUseDecal = !(GetVelocity().IsNearlyZero());
+            EffectActor->SurfaceHit = mLastHit;
 			UGameplayStatics::FinishSpawningActor(EffectActor, SpawnTransform);
 		}
 	}
@@ -141,7 +149,7 @@ void AShooterProjectile::OnRep_Exploded()
 		Impact.ImpactNormal = -ProjDirection;
 	}
 
-	Explode(Impact);
+	//Explode(Impact);
 }
 ///CODE_SNIPPET_END
 
@@ -158,9 +166,4 @@ void AShooterProjectile::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >
 	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
 	
 	DOREPLIFETIME( AShooterProjectile, bExploded );
-}
-
-void AShooterProjectile::Explode2()
-{
-    UE_LOG(LogTemp, Log, TEXT("EXPLOOOOOOOOOOOOSION"));
 }

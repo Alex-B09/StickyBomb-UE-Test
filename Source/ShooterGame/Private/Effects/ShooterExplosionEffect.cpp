@@ -35,7 +35,7 @@ void AShooterExplosionEffect::BeginPlay()
 		UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
 	}
 
-	if (Decal.DecalMaterial)
+	if (ShouldUseDecal && Decal.DecalMaterial)
 	{
 		FRotator RandomDecalRotation = SurfaceHit.ImpactNormal.Rotation();
 		RandomDecalRotation.Roll = FMath::FRandRange(-180.0f, 180.0f);

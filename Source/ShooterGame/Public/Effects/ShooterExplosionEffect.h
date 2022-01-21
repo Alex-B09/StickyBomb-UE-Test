@@ -40,6 +40,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category=Surface)
 	FHitResult SurfaceHit;
 
+    /** should we use decals? */
+    UPROPERTY(BlueprintReadOnly, Category = Surface)
+        bool ShouldUseDecal;
+    // AB - should do something for sticking to an actor
+
+
 	/** update fading light */
 	virtual void Tick(float DeltaSeconds) override;
 

@@ -36,6 +36,9 @@ private:
 
 	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
 	UParticleSystemComponent* ParticleComp;
+
+    FHitResult mLastHit;
+
 protected:
 
 	/** effects for explosion */
@@ -62,7 +65,8 @@ protected:
 	void OnRep_Exploded();
 
 	/** trigger explosion */
-	void Explode(const FHitResult& Impact);
+    UFUNCTION()
+	void Explode();
 
 	/** shutdown projectile and prepare for destruction */
 	void DisableAndDestroy();
@@ -70,8 +74,6 @@ protected:
 	/** update velocity on client */
 	virtual void PostNetReceiveVelocity(const FVector& NewVelocity) override;
     
-    UFUNCTION()
-    void Explode2();
 
 protected:
 	/** Returns MovementComp subobject **/
