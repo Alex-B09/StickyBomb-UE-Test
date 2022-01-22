@@ -79,7 +79,7 @@ void AShooterProjectile::OnImpact(const FHitResult& HitResult)
 	{
         mLastHit = HitResult;
 		//Explode(HitResult);
-		DisableAndDestroy();
+		//DisableAndDestroy();
 	}
 }
 
@@ -117,6 +117,7 @@ void AShooterProjectile::Explode()
 	}
 
 	bExploded = true;
+    DisableAndDestroy();
 }
 
 void AShooterProjectile::DisableAndDestroy()
