@@ -20,6 +20,12 @@ AShooterProjectile::AShooterProjectile(const FObjectInitializer& ObjectInitializ
 	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 	RootComponent = CollisionComp;
 
+    PickupSphereComp = ObjectInitializer.CreateDefaultSubobject<USphereComponent>(this, TEXT("PickupSphereComp"));
+    PickupSphereComp->InitSphereRadius(25.f); // To define in BP
+    PickupSphereComp->SetCollisionProfileName(COLLISION_PRESET_OPTIONALCOLLISION);
+    PickupSphereComp->SetupAttachment(RootComponent);
+    
+
 	ParticleComp = ObjectInitializer.CreateDefaultSubobject<UParticleSystemComponent>(this, TEXT("ParticleComp"));
 	ParticleComp->bAutoActivate = false;
 	ParticleComp->bAutoDestroy = false;
@@ -62,6 +68,10 @@ void AShooterProjectile::BeginPlay()
     {
         // set timer
         GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AShooterProjectile::Explode, 3.0f, false);
+
+        // set collision
+        PickupSphereComp->OnComponentBeginOverlap.AddDynamic(this, &AShooterProjectile::OnPickupOverlap);
+        //PickupSphereComp->OnComponentEndOverlap.AddDynamic(this, &AShooterProjectile::OnPickupOverlapEnd);
     }
 }
 
@@ -78,8 +88,6 @@ void AShooterProjectile::OnImpact(const FHitResult& HitResult)
 	if (GetLocalRole() == ROLE_Authority && !bExploded)
 	{
         mLastHit = HitResult;
-		//Explode(HitResult);
-		//DisableAndDestroy();
 	}
 }
 
@@ -116,8 +124,9 @@ void AShooterProjectile::Explode()
 		}
 	}
 
-	bExploded = true;
-    DisableAndDestroy();
+	bExploded = true; // this will trigger replication on the clients...i hope
+                      // To test if this is problematic 
+    DisableAndDestroy(); // this can only be called from the server
 }
 
 void AShooterProjectile::DisableAndDestroy()
@@ -167,4 +176,14 @@ void AShooterProjectile::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >
 	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
 	
 	DOREPLIFETIME( AShooterProjectile, bExploded );
+}
+
+void AShooterProjectile::OnPickupOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    UE_LOG(LogTemp, Log, TEXT("Begin Overlap"));
+}
+
+void AShooterProjectile::OnPickupOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    UE_LOG(LogTemp, Log, TEXT("Begin End"));
 }

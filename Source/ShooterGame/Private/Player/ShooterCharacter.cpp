@@ -58,6 +58,11 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Block);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
 
+    // set the right size in the BP
+    PickupComp = ObjectInitializer.CreateDefaultSubobject<UBoxComponent>(this, TEXT("PickupComp"));
+    PickupComp->SetCollisionProfileName(COLLISION_PRESET_OPTIONALCOLLISION);
+    PickupComp->SetupAttachment(RootComponent);
+
 	TargetingSpeedModifier = 0.5f;
 	bIsTargeting = false;
 	RunningSpeedModifier = 1.5f;

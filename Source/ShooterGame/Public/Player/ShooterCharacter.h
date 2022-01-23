@@ -377,6 +377,9 @@ protected:
 	UPROPERTY()
 	UAudioComponent* LowHealthWarningPlayer;
 
+    UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
+    UBoxComponent* PickupComp;
+
 	/** handles sounds for running */
 	void UpdateRunSounds();
 
