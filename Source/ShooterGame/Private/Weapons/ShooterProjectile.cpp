@@ -67,12 +67,12 @@ void AShooterProjectile::BeginPlay()
     if (HasAuthority())
     {
         // set timer
-        GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AShooterProjectile::Explode, 3.0f, false);
-
-        // set collision
-        PickupSphereComp->OnComponentBeginOverlap.AddDynamic(this, &AShooterProjectile::OnPickupOverlap);
-        //PickupSphereComp->OnComponentEndOverlap.AddDynamic(this, &AShooterProjectile::OnPickupOverlapEnd);
+        GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AShooterProjectile::Explode, WeaponConfig.SecondsBeforeExplosing, false);
     }
+
+    // set collision
+    PickupSphereComp->OnComponentBeginOverlap.AddDynamic(this, &AShooterProjectile::OnPickupOverlap);
+    PickupSphereComp->OnComponentEndOverlap.AddDynamic(this, &AShooterProjectile::OnPickupOverlapEnd);
 }
 
 void AShooterProjectile::InitVelocity(FVector& ShootDirection)
@@ -127,6 +127,7 @@ void AShooterProjectile::Explode()
 	bExploded = true; // this will trigger replication on the clients...i hope
                       // To test if this is problematic 
     DisableAndDestroy(); // this can only be called from the server
+    BP_HidePickupUI(nullptr);
 }
 
 void AShooterProjectile::DisableAndDestroy()
@@ -181,9 +182,23 @@ void AShooterProjectile::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >
 void AShooterProjectile::OnPickupOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     UE_LOG(LogTemp, Log, TEXT("Begin Overlap"));
+
+    // check velocity
+    if (MovementComp->Velocity.IsNearlyZero())
+    {
+        BP_ShowPickupUI(OtherActor);
+    }
+    else
+    {
+        // technicaly speaking, we should put the actor in a temp list
+        // and then check in the tick if the velocity is low enough to be pickable
+
+        // not doing it right now
+    }
 }
 
-void AShooterProjectile::OnPickupOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AShooterProjectile::OnPickupOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
     UE_LOG(LogTemp, Log, TEXT("Begin End"));
+    BP_HidePickupUI(OtherActor);
 }
