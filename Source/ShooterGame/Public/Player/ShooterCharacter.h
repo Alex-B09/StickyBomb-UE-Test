@@ -201,6 +201,9 @@ class AShooterCharacter : public ACharacter
 	/** player released run action */
 	void OnStopRunning();
 
+    /** player pressed run action */
+    void OnPickup();
+
 	//////////////////////////////////////////////////////////////////////////
 	// Reading data
 
@@ -380,6 +383,13 @@ protected:
     UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
     UBoxComponent* PickupComp;
 
+    // This should be, at some point, an actor class that is specialized for pickup
+    // ...if there is a need. There is none right now
+    UPROPERTY()
+        TArray<class AShooterProjectile*> mPossiblePickups;
+
+    
+
 	/** handles sounds for running */
 	void UpdateRunSounds();
 
@@ -437,6 +447,10 @@ public:
 
 	/** Called on the actor right before replication occurs */
 	virtual void PreReplication(IRepChangedPropertyTracker & ChangedPropertyTracker) override;
+
+    void AddPickup(class AShooterProjectile* pickup);
+    void RemovePickup(class AShooterProjectile* pickup);
+
 protected:
 	/** notification when killed, for both the server and client. */
 	virtual void OnDeath(float KillingDamage, struct FDamageEvent const& DamageEvent, class APawn* InstigatingPawn, class AActor* DamageCauser);

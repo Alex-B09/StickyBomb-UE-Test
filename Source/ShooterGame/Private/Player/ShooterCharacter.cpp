@@ -9,6 +9,7 @@
 #include "Animation/AnimInstance.h"
 #include "Sound/SoundNodeLocalPlayer.h"
 #include "AudioThread.h"
+#include "Weapons/ShooterProjectile.h"
 
 static int32 NetVisualizeRelevancyTestPoints = 0;
 FAutoConsoleVariableRef CVarNetVisualizeRelevancyTestPoints(
@@ -889,6 +890,9 @@ void AShooterCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AShooterCharacter::OnStartRunning);
 	PlayerInputComponent->BindAction("RunToggle", IE_Pressed, this, &AShooterCharacter::OnStartRunningToggle);
 	PlayerInputComponent->BindAction("Run", IE_Released, this, &AShooterCharacter::OnStopRunning);
+
+    // new pickup action
+    PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &AShooterCharacter::OnPickup);
 }
 
 
@@ -1061,6 +1065,26 @@ void AShooterCharacter::OnStopRunning()
 {
 	SetRunning(false, false);
 }
+
+void AShooterCharacter::OnPickup()
+{
+    // if there is a pickup object, we pick it up
+    
+    //take the first element
+    if (mPossiblePickups.Num() > 0)
+    {
+        auto pickup = mPossiblePickups.Pop();
+        if (pickup) // this should never be false...but it is always better to be sure
+        {
+            pickup->PickingUp(this);
+        }
+        else
+        {
+            // AB - error message
+        }
+    }
+}
+
 
 bool AShooterCharacter::IsRunning() const
 {
@@ -1328,4 +1352,14 @@ void AShooterCharacter::BuildPauseReplicationCheckPoints(TArray<FVector>& Releva
 	RelevancyCheckPoints.Add(FVector(BoundingBox.Max.X, BoundingBox.Max.Y - YDiff, BoundingBox.Max.Z));
 	RelevancyCheckPoints.Add(FVector(BoundingBox.Max.X - XDiff, BoundingBox.Max.Y - YDiff, BoundingBox.Max.Z));
 	RelevancyCheckPoints.Add(BoundingBox.Max);
+}
+
+void AShooterCharacter::AddPickup(AShooterProjectile* pickup)
+{
+    mPossiblePickups.AddUnique(pickup);
+}
+
+void AShooterCharacter::RemovePickup(AShooterProjectile* pickup)
+{
+    mPossiblePickups.Remove(pickup);
 }

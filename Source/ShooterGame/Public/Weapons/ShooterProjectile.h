@@ -58,6 +58,8 @@ protected:
 	UPROPERTY(Transient, ReplicatedUsing=OnRep_Exploded)
 	bool bExploded;
 
+    bool bCanExplode = true;
+
     UPROPERTY()
     FTimerHandle ExplosionTimerHandle;
 
@@ -73,6 +75,8 @@ protected:
 
 	/** shutdown projectile and prepare for destruction */
 	void DisableAndDestroy();
+
+    void DisapearFromWorld();
 
 	/** update velocity on client */
 	virtual void PostNetReceiveVelocity(const FVector& NewVelocity) override;
@@ -97,4 +101,8 @@ protected:
 	FORCEINLINE USphereComponent* GetCollisionComp() const { return CollisionComp; }
 	/** Returns ParticleComp subobject **/
 	FORCEINLINE UParticleSystemComponent* GetParticleComp() const { return ParticleComp; }
+
+
+public:
+    void PickingUp(class AShooterCharacter* character);
 };

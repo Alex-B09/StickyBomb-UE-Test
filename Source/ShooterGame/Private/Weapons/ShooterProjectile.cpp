@@ -4,6 +4,8 @@
 #include "Weapons/ShooterProjectile.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Effects/ShooterExplosionEffect.h"
+#include "Weapons/ShooterWeapon_Projectile.h"
+#include "Player/ShooterCharacter.h"
 
 AShooterProjectile::AShooterProjectile(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -94,10 +96,10 @@ void AShooterProjectile::OnImpact(const FHitResult& HitResult)
 void AShooterProjectile::Explode()
 {
     UE_LOG(LogTemp, Log, TEXT("EXPLOOOOOOOOOOOOSION"));
-	if (ParticleComp)
-	{
-		ParticleComp->Deactivate();
-	}
+    if (!bCanExplode)
+    {
+        return; // this should never happen but i'm not taking any chances
+    }
 
     // get current position
     auto location = GetActorLocation();
@@ -126,8 +128,7 @@ void AShooterProjectile::Explode()
 
 	bExploded = true; // this will trigger replication on the clients...i hope
                       // To test if this is problematic 
-    DisableAndDestroy(); // this can only be called from the server
-    BP_HidePickupUI(nullptr);
+    DisapearFromWorld();
 }
 
 void AShooterProjectile::DisableAndDestroy()
@@ -159,8 +160,6 @@ void AShooterProjectile::OnRep_Exploded()
 		Impact.ImpactPoint = GetActorLocation();
 		Impact.ImpactNormal = -ProjDirection;
 	}
-
-	//Explode(Impact);
 }
 ///CODE_SNIPPET_END
 
@@ -187,6 +186,11 @@ void AShooterProjectile::OnPickupOverlap(UPrimitiveComponent* OverlappedComp, AA
     if (MovementComp->Velocity.IsNearlyZero())
     {
         BP_ShowPickupUI(OtherActor);
+
+        if (auto character = Cast<AShooterCharacter>(OtherActor))
+        {
+            character->AddPickup(this);
+        }
     }
     else
     {
@@ -201,4 +205,54 @@ void AShooterProjectile::OnPickupOverlapEnd(UPrimitiveComponent* OverlappedComp,
 {
     UE_LOG(LogTemp, Log, TEXT("Begin End"));
     BP_HidePickupUI(OtherActor);
+
+    if (auto character = Cast<AShooterCharacter>(OtherActor))
+    {
+        character->RemovePickup(this);
+    }
 }
+
+void AShooterProjectile::PickingUp(class AShooterCharacter* character)
+{
+    AShooterWeapon* weapon = (character ? character->FindWeapon(AShooterWeapon_Projectile::StaticClass()) : nullptr);
+    if (weapon)
+    {
+        if(weapon->GetCurrentAmmo() < weapon->GetMaxAmmo())
+        {
+            weapon->GiveAmmo(1);
+            bCanExplode = false;
+
+            // stop timer
+            if (HasAuthority())
+            {
+                GetWorldTimerManager().ClearTimer(ExplosionTimerHandle);
+            }
+
+            DisapearFromWorld();
+        }
+    }
+}
+
+void AShooterProjectile::DisapearFromWorld()
+{
+    if (ParticleComp)
+    {
+        ParticleComp->Deactivate();
+    }
+
+    DisableAndDestroy(); // this can only be called from the server
+    BP_HidePickupUI(nullptr);
+}
+
+// This is a copy-pasta from AShooterPickup_Ammo
+// There should be a refactor to put all pickup (automatic and optional)
+//bool AShooterPickup_Ammo::CanBePickedUp(AShooterCharacter* TestPawn) const
+//{
+//    AShooterWeapon* TestWeapon = (TestPawn ? TestPawn->FindWeapon(WeaponType) : NULL);
+//    if (bIsActive && TestWeapon)
+//    {
+//        return TestWeapon->GetCurrentAmmo() < TestWeapon->GetMaxAmmo();
+//    }
+//
+//    return false;
+//}
