@@ -59,10 +59,10 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Block);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
 
-    // set the right size in the BP
-    PickupComp = ObjectInitializer.CreateDefaultSubobject<UBoxComponent>(this, TEXT("PickupComp"));
-    PickupComp->SetCollisionProfileName(COLLISION_PRESET_OPTIONALCOLLISION);
-    PickupComp->SetupAttachment(RootComponent);
+    // set the right size and placement in the BP
+    PickupComponent = ObjectInitializer.CreateDefaultSubobject<UCapsuleComponent>(this, TEXT("PickupComponent"));
+    PickupComponent->SetCollisionProfileName(COLLISION_PRESET_OPTIONALCOLLISION);
+    PickupComponent->SetupAttachment(Mesh1P);
 
 	TargetingSpeedModifier = 0.5f;
 	bIsTargeting = false;
@@ -1073,14 +1073,13 @@ void AShooterCharacter::OnPickup()
     //take the first element
     if (mPossiblePickups.Num() > 0)
     {
-        auto pickup = mPossiblePickups.Pop();
-        if (pickup) // this should never be false...but it is always better to be sure
+        if (auto pickup = mPossiblePickups.Pop()) // this should never be false...but it is always better to be sure
         {
             pickup->PickingUp(this);
         }
         else
         {
-            // AB - error message
+            UE_LOG(LogTemp, Log, TEXT("AShooterCharacter::OnPickup - invalid pickup object -- should never happen"));
         }
     }
 }

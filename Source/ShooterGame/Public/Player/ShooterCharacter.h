@@ -381,7 +381,7 @@ protected:
 	UAudioComponent* LowHealthWarningPlayer;
 
     UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
-    UBoxComponent* PickupComp;
+    UCapsuleComponent* PickupComponent;
 
     // This should be, at some point, an actor class that is specialized for pickup
     // ...if there is a need. There is none right now
